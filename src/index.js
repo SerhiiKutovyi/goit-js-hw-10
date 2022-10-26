@@ -1,127 +1,70 @@
-import Notiflix from 'notiflix';
-import debounce from 'lodash.debounce';
 import './css/styles.css';
-import fetchCountries from './fetchCountries.js';
-export {ref}
-
-const ref = {
-  input: document.querySelector('#search-box'),
-  countryList: document.querySelector('.country-list'),
-  countryInfo: document.querySelector('.country-info'),
-};
+const debounce = require('lodash.debounce');
+import Notiflix from 'notiflix';
+import CountriesApiService from '../src/fetchCountries.js';
 
 const DEBOUNCE_DELAY = 300;
 
-ref.input.addEventListener('input', debounce(markupCountries, DEBOUNCE_DELAY));
+const ref = {
+  searchInputEl: document.querySelector('#search-box'),
+  countryListEl: document.querySelector('.country-list'),
+};
 
-function markupCountries() {
-  if (ref.input.value.length < 1 && ref.input.value.length > 11) {
-    Notiflix.Notify.failure(
+const countriesApiService = new CountriesApiService();
+
+ref.searchInputEl.addEventListener(
+  'input',
+  debounce(onSearchInput, DEBOUNCE_DELAY)
+);
+
+function onSearchInput(e) {
+  countriesApiService.searchQuery = e.target.value.toLowerCase().trim();
+  if (!countriesApiService.searchQuery) {
+    return clearMarkup();
+  }
+  countriesApiService.fetchCountries().then(createMarkup).catch(onError);
+}
+
+function onError() {
+  clearMarkup();
+  Notiflix.Notify.failure('Oops, there is no country with that name');
+}
+
+function createMarkup(data) {
+  if (data.length > 10) {
+    clearMarkup();
+    Notiflix.Notify.info(
       'Too many matches found. Please enter a more specific name.'
     );
-  console.log('input start');
-  if (ref.input.value.length > 0) {
-    fetchCountries(ref.input.value).then(data => {
-      
-      let test = data;
-      const markup = test
-        .map(
-          item => `<li>
-          <p class="name">${item.name.official}</p>
-          <img class="image" src="${item.flags.svg}" alt="Flag of ${item.name.official}" width = 30px height = 30 px />
-        </li>`
-        )
-        .join('');
-      ref.countryList.innerHTML = markup;
-      ref.countryInfo.innerHTML = '';
-      return (ref.countryList.innerHTML = markup);
-    });
-  } else if (ref.input.value.length === 1) {
-    
-    fetchCountries(element.ref.input.value).then(data => {
-
-      
-      let test = data;
-      const markup = test
-        .map(
-          item => `<div class="flag-country-block">
-        <img
-          class="flag"
-          src="${flags.svg}"
-          alt="flag"
-        />
-        <h1>${item.name.official}</h1>
-      </div>
-      <ul class="country-info-details">
-        <li class="country-info-item">
-          <h2>Capital:</h2>
-          <span class="info-value">${capital}</span>
-        </li>
-        <li class="country-info-item">
-          <h2>Population:</h2>
-          <span class="info-value">${population}</span
-          >
-        </li>
-        <li class="country-info-item">
-          <h2>Languages:</h2>
-          <span class="info-value">${Object.values(languages)}</span
-          >
-        </li>
-      </ul>`
-        )
-        .join('');
-      
-      ref.countryList.innerHTML = '';
-      ref.countryInfo.innerHTML = markup;
-      return (ref.countryInfo.innerHTML = markup);
-      
-    });
+  } else if (data.length >= 2 && data.length <= 10) {
+    renderCountry(data, markupSetCountry);
   } else {
-    console.log('null');
-    ref.countryList.innerHTML = '';
-    ref.countryInfo.innerHTML = '';
+    renderCountry(data, markupCountry);
   }
+}
 
-//   function markupCountryFullInfo(element) {
-//     if (ref.input.value.length === 1) {
-//       fetchCountries(element.ref.input.value).then(data => {
-//         console.log(data);
-//         let test = data;
-//         const markup = test
-//           .map(
-//             item => `<div class="flag-country-block">
-//         <img
-//           class="flag"
-//           src="${flags.svg}"
-//           alt="flag"
-//         />
-//         <h1>${item.name.official}</h1>
-//       </div>
-//       <ul class="country-info-details">
-//         <li class="country-info-item">
-//           <h2>Capital:</h2>
-//           <span class="info-value">${capital}</span>
-//         </li>
-//         <li class="country-info-item">
-//           <h2>Population:</h2>
-//           <span class="info-value">${population}</span
-//           >
-//         </li>
-//         <li class="country-info-item">
-//           <h2>Languages:</h2>
-//           <span class="info-value">${Object.values(languages)}</span
-//           >
-//         </li>
-//       </ul>`
-//           )
-//           .join('');
-//         return (ref.countryList.innerHTML = markup);
-//       });
-//     } else {
-//       ref.countryList.innerHTML = '';
-//       ref.countryInfo.innerHTML = '';
-//     }
-//   }
-// }
+function renderCountry(data, markupFunction) {
+  const markup = data.map(markupFunction).join('');
+  ref.countryListEl.innerHTML = markup;
+}
 
-// return ref.countryInfo.insertAdjacentHTML("beforeend", ``);
+function clearMarkup() {
+  ref.countryListEl.innerHTML = '';
+}
+
+function markupSetCountry(data) {
+  return `<li class="list-item"><img src="${data.flags.svg}" alt="flag" width=30 height=30>  <span>&nbsp;${data.name.official}</span></li>`;
+}
+
+function markupCountry(data) {
+  return `<li class="list-item">
+    <img src="${data.flags.svg}" alt="flag" width=50 height=50>  <span>&nbsp;${
+    data.name.official
+  }</span>
+    <p class="item-text"><b>Capital:</b>&nbsp;${data.capital}</p>
+    <p class="item-text"><b>Population:</b>&nbsp;${data.population}</p>
+    <p class="item-text"><b>Languages:</b>&nbsp;${Object.values(
+      data.languages
+    ).join(', ')}</p>
+    </li>`;
+}
