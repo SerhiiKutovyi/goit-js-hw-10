@@ -1,3 +1,12 @@
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+h2 {
+  margin-top: 0;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -17,4 +26,8 @@ body {
   padding: 8px;
   max-width: 320px;
   margin-bottom: 16px;
+}
+
+.list-item {
+  list-style-type: none;
 }

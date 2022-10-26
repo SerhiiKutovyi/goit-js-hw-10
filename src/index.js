@@ -53,17 +53,17 @@ function clearMarkup() {
 }
 
 function markupSetCountry(data) {
-  return `<li class="list-item"><img src="${data.flags.svg}" alt="flag" width=30 height=30>  <span>&nbsp;${data.name.official}</span></li>`;
+  return `<li class="list-item"><img src="${data.flags.svg}" alt="flag" width=30 >  <span>&nbsp;${data.name.official}</span></li>`;
 }
 
 function markupCountry(data) {
   return `<li class="list-item">
-    <img src="${data.flags.svg}" alt="flag" width=50 height=50>  <span>&nbsp;${
+    <img src="${data.flags.svg}" alt="flag" width=80 ><h2>${
     data.name.official
-  }</span>
-    <p class="item-text"><b>Capital:</b>&nbsp;${data.capital}</p>
-    <p class="item-text"><b>Population:</b>&nbsp;${data.population}</p>
-    <p class="item-text"><b>Languages:</b>&nbsp;${Object.values(
+  }</h2>
+    <p class="item-text"><b>Capital:</b>  ${data.capital}</p>
+    <p class="item-text"><b>Population:</b>  ${data.population}</p>
+    <p class="item-text"><b>Languages:</b>  ${Object.values(
       data.languages
     ).join(', ')}</p>
     </li>`;
